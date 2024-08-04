@@ -18,6 +18,10 @@ power_sound = pygame.mixer.Sound(os.path.join(audio_path, 'power.mp3'))
 death_sound = pygame.mixer.Sound(os.path.join(audio_path, 'death.mp3'))
 win_sound = pygame.mixer.Sound(os.path.join(audio_path, 'win.mp3'))
 
+# Load background music
+background_music = os.path.join(audio_path, 'background_music.mp3')
+pygame.mixer.music.load(background_music)
+
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -314,6 +318,7 @@ while True:
                 if game_state == START:
                     start_time = time.time()
                     pygame.mixer.Sound.play(start_sound)
+                    pygame.mixer.music.play(-1)  # Start playing background music in a loop
                     game_state = PLAYING
                 elif game_state == END:
                     # Restart the game
@@ -327,8 +332,10 @@ while True:
                     game_state = START
             elif event.key == pygame.K_p and game_state == PLAYING:
                 game_state = PAUSED
+                pygame.mixer.music.pause()  # Pause the background music
             elif event.key == pygame.K_p and game_state == PAUSED:
                 game_state = PLAYING
+                pygame.mixer.music.unpause()  # Resume the background music
             elif event.key == pygame.K_m:
                 audio_muted = not audio_muted
                 pygame.mixer.music.set_volume(0 if audio_muted else 1)
@@ -396,4 +403,5 @@ while True:
         draw_paused_screen()
     elif game_state == END:
         draw_end_screen(not bricks)
+        pygame.mixer.music.stop()  # Stop the background music
     clock.tick(60)
