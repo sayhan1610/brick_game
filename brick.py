@@ -27,8 +27,8 @@ pygame.display.set_caption("Brick Breaker")
 # Colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 PURPLE = (128, 0, 128)
@@ -120,12 +120,16 @@ class Ball:
         for brick in bricks[:]:
             if self.rect.colliderect(brick.rect):
                 self.speed_y = -self.speed_y
-                bricks.remove(brick)
+                brick.hit_points -= 1
                 pygame.mixer.Sound.play(brick_sound)
-                powerup = self.create_powerup(brick.rect)
-                if powerup:
-                    powerups.append(powerup)
-                create_particles(brick.rect)
+                if brick.hit_points <= 0:
+                    bricks.remove(brick)
+                    powerup = self.create_powerup(brick.rect)
+                    if powerup:
+                        powerups.append(powerup)
+                    create_particles(brick.rect)
+                else:
+                    brick.update_color()
                 break
 
         if self.rect.bottom >= SCREEN_HEIGHT:
@@ -165,7 +169,16 @@ class Ball:
 class Brick:
     def __init__(self, x, y, color):
         self.rect = pygame.Rect(x, y, BRICK_WIDTH, BRICK_HEIGHT)
-        self.color = color
+        self.hit_points = 3 if color == BLUE else 2 if color == RED else 1
+        self.update_color()
+
+    def update_color(self):
+        if self.hit_points == 3:
+            self.color = BLUE
+        elif self.hit_points == 2:
+            self.color = RED
+        elif self.hit_points == 1:
+            self.color = GREEN
 
     def draw(self):
         pygame.draw.rect(SCREEN, self.color, self.rect)
@@ -253,172 +266,134 @@ def draw_instructions_screen():
         "Instructions:",
         "1. Use LEFT and RIGHT arrow keys to move the paddle.",
         "2. Press SPACE to start the game.",
-        "3. Press M to mute/unmute the audio.",
-        "4. Break all the bricks to win.",
-        "5. Collect power-ups for bonuses.",
-        "6. Press ESC to pause/unpause.",
-        "7. Press SPACE to restart after game over."
+        "3. Break all the bricks to win.",
+        "4. Collect power-ups for special abilities.",
+        "5. Avoid missing the ball with your paddle.",
+        "Press BACKSPACE to go back."
     ]
     for i, line in enumerate(instructions):
         text = font.render(line, True, WHITE)
-        SCREEN.blit(text, (50, 50 + i * 40))
+        SCREEN.blit(text, ((SCREEN_WIDTH - text.get_width()) // 2, 50 + i * 40))
     pygame.display.flip()
 
-def draw_end_screen():
+def draw_paused_screen():
+    font = pygame.font.SysFont(None, 55)
+    text = font.render("Game Paused. Press P to Resume", True, WHITE)
+    SCREEN.blit(text, ((SCREEN_WIDTH - text.get_width()) // 2, (SCREEN_HEIGHT - text.get_height()) // 2))
+    pygame.display.flip()
+
+def draw_end_screen(won):
     SCREEN.fill(BLACK)
     font = pygame.font.SysFont(None, 55)
-    time_elapsed = end_time - start_time
-    text = font.render(f"Game Over! Time: {time_elapsed:.2f} seconds", True, WHITE)
+    if won:
+        text = font.render("Congratulations! You Won!", True, WHITE)
+    else:
+        text = font.render("Game Over. You Lost.", True, WHITE)
     SCREEN.blit(text, ((SCREEN_WIDTH - text.get_width()) // 2, (SCREEN_HEIGHT - text.get_height()) // 2))
     score_text = font.render(f"Score: {score}", True, WHITE)
     SCREEN.blit(score_text, ((SCREEN_WIDTH - score_text.get_width()) // 2, (SCREEN_HEIGHT - score_text.get_height()) // 2 + 60))
-    lives_text = font.render(f"Lives: {lives}", True, WHITE)
-    SCREEN.blit(lives_text, ((SCREEN_WIDTH - lives_text.get_width()) // 2, (SCREEN_HEIGHT - lives_text.get_height()) // 2 + 120))
     pygame.display.flip()
-
-def draw_pause_screen():
-    SCREEN.fill(BLACK)
-    font = pygame.font.SysFont(None, 55)
-    text = font.render("Paused - Press ESC to Resume", True, WHITE)
-    SCREEN.blit(text, ((SCREEN_WIDTH - text.get_width()) // 2, (SCREEN_HEIGHT - text.get_height()) // 2))
-    pygame.display.flip()
-
-def draw_game():
-    SCREEN.fill(BLACK)
-    paddle.draw()
-    for ball in balls:
-        ball.draw()
-    for brick in bricks:
-        brick.draw()
-    for powerup in powerups:
-        powerup.draw()
-    for particle in particles[:]:
-        if particle.life > 0:
-            particle.move()
-            particle.draw()
-        else:
-            particles.remove(particle)
-    font = pygame.font.SysFont(None, 35)
-    score_text = font.render(f"Score: {score}", True, WHITE)
-    lives_text = font.render(f"Lives: {lives}", True, WHITE)
-    SCREEN.blit(score_text, (10, 10))
-    SCREEN.blit(lives_text, (10, 50))
-    pygame.display.flip()
-
-def reset_game():
-    global paddle, balls, bricks, powerups, particles, score, lives
-    paddle = Paddle()
-    balls = [Ball(paddle)]
-    bricks = []
-    for row in range(BRICK_ROWS):
-        for col in range(BRICK_COLUMNS):
-            brick = Brick(col * BRICK_WIDTH, row * BRICK_HEIGHT, COLORS[(row + col) % len(COLORS)])
-            bricks.append(brick)
-    powerups = []
-    particles = []
-    score = 0
-    lives = LIVES
 
 def create_particles(brick_rect):
     for _ in range(PARTICLE_COUNT):
-        speed_x = random.uniform(-2, 2)
-        speed_y = random.uniform(-2, 2)
-        color = random.choice(COLORS)
-        particle = Particle(brick_rect.x + BRICK_WIDTH // 2, brick_rect.y + BRICK_HEIGHT // 2, color, speed_x, speed_y)
+        speed_x = random.randint(-5, 5)
+        speed_y = random.randint(-5, 5)
+        particle = Particle(brick_rect.centerx, brick_rect.centery, random.choice(COLORS), speed_x, speed_y)
         particles.append(particle)
 
-def check_win_condition():
-    if not bricks:  # Check if all bricks are gone
-        pygame.mixer.Sound.play(win_sound)
-        return True
-    return False
-
 # Main game loop
-running = True
-while running:
+clock = pygame.time.Clock()
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            pygame.quit()
+            sys.exit()
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 if game_state == START:
-                    game_state = PLAYING
                     start_time = time.time()
-                    if not audio_muted:
-                        pygame.mixer.Sound.play(start_sound)
+                    pygame.mixer.Sound.play(start_sound)
+                    game_state = PLAYING
                 elif game_state == END:
-                    reset_game()
+                    # Restart the game
+                    paddle = Paddle()
+                    balls = [Ball(paddle)]
+                    bricks = [Brick(col * BRICK_WIDTH, row * BRICK_HEIGHT, COLORS[(row + col) % len(COLORS)]) for row in range(BRICK_ROWS) for col in range(BRICK_COLUMNS)]
+                    powerups = []
+                    particles = []
+                    score = 0
+                    lives = LIVES
                     game_state = START
-                elif game_state == PAUSED:
-                    game_state = PLAYING
-                elif game_state == INSTRUCTIONS:
-                    game_state = START
-            elif event.key == pygame.K_ESCAPE:
-                if game_state == PLAYING:
-                    game_state = PAUSED
-                elif game_state == PAUSED:
-                    game_state = PLAYING
-            elif event.key == pygame.K_i:
-                if game_state != INSTRUCTIONS:
-                    game_state = INSTRUCTIONS
+            elif event.key == pygame.K_p and game_state == PLAYING:
+                game_state = PAUSED
+            elif event.key == pygame.K_p and game_state == PAUSED:
+                game_state = PLAYING
             elif event.key == pygame.K_m:
                 audio_muted = not audio_muted
                 pygame.mixer.music.set_volume(0 if audio_muted else 1)
+            elif event.key == pygame.K_i and game_state == START:
+                game_state = INSTRUCTIONS
+            elif event.key == pygame.K_BACKSPACE and game_state == INSTRUCTIONS:
+                game_state = START
+            elif event.key == pygame.K_ESCAPE and game_state == PLAYING:
+                game_state = PAUSED
 
     if game_state == START:
         draw_start_screen()
-
     elif game_state == INSTRUCTIONS:
         draw_instructions_screen()
-
     elif game_state == PLAYING:
+        SCREEN.fill(BLACK)
         paddle.move()
         paddle.update()
+        paddle.draw()
         for ball in balls[:]:
             if ball.move(paddle, bricks, powerups):
                 balls.remove(ball)
-                score += 10  # Increment score when a ball falls off
-                pygame.mixer.Sound.play(death_sound)  # Play death sound
-        if len(balls) == 0:
-            if lives > 0:
-                lives -= 1
-                ball = Ball(paddle)  # Reset ball position
-                balls = [ball]  # Reset balls list
-                game_state = PLAYING
-            else:
-                game_state = END
-                end_time = time.time()
+                if not balls:
+                    lives -= 1
+                    if lives > 0:
+                        balls.append(Ball(paddle))
+                    else:
+                        game_state = END
+                        end_time = time.time()
+                        pygame.mixer.Sound.play(death_sound)
+                        break
+            ball.update()
+            ball.draw()
+        for brick in bricks:
+            brick.draw()
         for powerup in powerups[:]:
             powerup.move()
             if powerup.rect.colliderect(paddle.rect):
-                if powerup.powerup_type == 'x3_balls':
-                    new_ball1 = Ball(paddle)
-                    new_ball2 = Ball(paddle)
-                    balls.append(new_ball1)
-                    balls.append(new_ball2)
-                elif powerup.powerup_type == 'extra_life':
-                    lives += 2
+                if powerup.powerup_type == 'extra_life':
+                    lives += 1
                 else:
                     for ball in balls:
                         ball.apply_powerup(powerup.powerup_type)
-                if powerup.powerup_type == 'paddle_size':
                     paddle.apply_powerup(powerup.powerup_type)
-                pygame.mixer.Sound.play(power_sound)
                 powerups.remove(powerup)
+                pygame.mixer.Sound.play(power_sound)
             elif powerup.rect.top > SCREEN_HEIGHT:
                 powerups.remove(powerup)
-        if check_win_condition():
+            powerup.draw()
+        for particle in particles[:]:
+            particle.move()
+            if particle.life <= 0:
+                particles.remove(particle)
+            particle.draw()
+        score = (BRICK_ROWS * BRICK_COLUMNS - len(bricks)) * 10
+        font = pygame.font.SysFont(None, 35)
+        text = font.render(f"Score: {score}  Lives: {lives}", True, WHITE)
+        SCREEN.blit(text, (20, 20))
+        if not bricks:
             game_state = END
             end_time = time.time()
-        draw_game()
-        pygame.time.Clock().tick(60)
-
+            pygame.mixer.Sound.play(win_sound)
+        pygame.display.flip()
     elif game_state == PAUSED:
-        draw_pause_screen()
-
+        draw_paused_screen()
     elif game_state == END:
-        score += lives * 20  # Add 20 points for each remaining life
-        draw_end_screen()
-
-pygame.quit()
-sys.exit()
+        draw_end_screen(not bricks)
+    clock.tick(60)
