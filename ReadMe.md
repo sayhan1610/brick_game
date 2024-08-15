@@ -2,109 +2,84 @@
 
 ## Overview
 
-Brick Breaker is a classic arcade-style game where players control a paddle to bounce a ball and break bricks. The game features various power-ups, sound effects, and dynamic gameplay elements to keep players engaged.
+Brick Breaker is a classic arcade game implemented in Python using Pygame. The goal is to destroy all the bricks by bouncing a ball off a paddle without letting the ball fall off the screen. This game features various power-ups, sound effects, and smooth animations.
 
 ## Features
 
-- **Paddle Movement**: Use the LEFT and RIGHT arrow keys to move the paddle.
-- **Brick Breaking**: Bounce the ball off the paddle to break bricks of different colors and hit points.
-- **Power-Ups**: Collect power-ups that offer special abilities or enhancements.
-- **Particles**: Visual effects when bricks are destroyed.
-- **Sound and Music**: Includes sound effects for interactions and background music.
-- **Scoring**: Earn points based on the number of bricks destroyed.
-- **Lives**: Keep track of lives and restart the game if all lives are lost.
+- Classic Brick Breaker gameplay
+- Multiple power-ups with different effects
+- Smooth animations and particle effects
+- Background music and sound effects
+- Pause and resume functionality
+- Score tracking and multiple lives
 
-## Getting Started
+## Installation
 
 ### Requirements
 
-- Python 3.x
-- Pygame library
+- Python 3.11.6 or higher
+- Pygame 2.5.0
 
-You can install Pygame using pip if you haven't already:
+### Setup
 
-```bash
-pip install pygame
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/sayhan1610/brick-breaker.git
+   cd brick-breaker
+   ```
+
+2. **Install the required dependencies:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Running the Game
+
+### On Windows
+
+Double-click the `for_windows.bat` file or run the following command in the terminal:
+
+```batch
+for_windows.bat
 ```
 
-### Installation
+### On Unix-based systems (Linux/MacOS)
 
-1. Clone or download the repository.
-2. Place your audio files (e.g., `start.mp3`, `brick.mp3`, `power.mp3`, `death.mp3`, `win.mp3`, and `background_music.mp3`) in an `audio` directory within the project folder.
-
-### Running the Game
-
-Navigate to the directory where the script is located and run:
+Run the following command in the terminal:
 
 ```bash
-python brick.py
+./for_unix.sh
 ```
 
-## Controls
+## How to Play
 
-- **SPACE**: Start or restart the game.
-- **LEFT Arrow**: Move the paddle left.
-- **RIGHT Arrow**: Move the paddle right.
-- **P**: Pause or resume the game.
-- **M**: Mute or unmute the audio.
-- **I**: View instructions.
-- **BACKSPACE**: Go back to the start screen from instructions.
-- **ESC**: Pause the game.
+- **Move the Paddle**: Use the **Left** and **Right** arrow keys.
+- **Start Game**: Press **Space** to start the game.
+- **Pause/Resume**: Press **P** to pause or resume the game.
+- **Toggle Mute**: Press **M** to mute/unmute the background music.
+- **View Instructions**: Press **I** to view instructions on the start screen.
 
-## Game States
+### Power-Ups
 
-- **START**: The initial screen where you press SPACE to start the game.
-- **INSTRUCTIONS**: Displays how to play the game.
-- **PLAYING**: The main gameplay state.
-- **PAUSED**: The game is paused.
-- **END**: The game has ended, displaying the result.
+- **x3 Balls (Yellow)**: Splits the ball into three.
+- **Mega Ball (Purple)**: Makes the ball bigger and more powerful.
+- **Paddle Size (Cyan)**: Doubles the paddle size temporarily.
+- **Speed Boost (Red)**: Increases ball speed temporarily.
+- **Reset Speed (Orange)**: Resets the ball speed to normal.
+- **Extra Life (Green)**: Grants an extra life.
 
-## Classes
+## Release Notes
 
-### `Paddle`
+### Version 0.1.0
 
-Manages the paddle's position and its interactions with power-ups.
-
-### `Ball`
-
-Handles the ball's movement, collisions, and power-up effects.
-
-### `Brick`
-
-Represents a brick with varying hit points and colors.
-
-### `PowerUp`
-
-Represents power-ups that fall from broken bricks and provides special abilities.
-
-### `Particle`
-
-Visual effects that occur when a brick is destroyed.
-
-## Audio Files
-
-Ensure you have the following audio files in the `audio` directory:
-
-- `start.mp3`: Sound played when the game starts.
-- `brick.mp3`: Sound played when a brick is hit.
-- `power.mp3`: Sound played when a power-up is collected.
-- `death.mp3`: Sound played when the player loses all lives.
-- `win.mp3`: Sound played when the player wins.
-- `background_music.mp3`: Music played in the background during the game.
-
-## Troubleshooting
-
-- **Audio Issues**: Ensure audio files are correctly placed and named in the `audio` directory.
-- **Performance**: If the game runs slowly, try adjusting the game loop's `clock.tick` value.
-
-## Contributing
-
-Feel free to fork the repository and submit pull requests with improvements or fixes. Ensure any changes are well-tested and documented.
+- Initial release with core gameplay, multiple power-ups, sound effects, and music.
 
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
----
+## Contact
 
-Enjoy breaking bricks and collecting power-ups! 🚀🎮
+Developed by [sayhan1610](mailto:sayhanrahman@gokkusagi.k12.tr). Feel free to reach out with any questions or feedback.
